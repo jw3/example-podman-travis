@@ -14,17 +14,29 @@ before_install:
   - echo -e "[registries.search]\nregistries = ['docker.io', 'quay.io']" | sudo tee /etc/containers/registries.conf
 
   - sudo podman pull --quiet ctcoss/fapolicyd
+  - mkdir /tmp/allow /tmp/deny
+  - cp hello.sh /tmp/deny
 
 before_script:
-  - sudo podman run -d -it --name fapolicyd --privileged --systemd true -v /tmp:/deny -v $PWD/simple.rules:/etc/fapolicyd/fapolicyd.rules ctcoss/fapolicyd
+  - >
+    sudo podman run -d -it --name fapolicyd
+    --privileged
+    --systemd true
+    -v /tmp/deny:/deny
+    -v /tmp/allow:/allow
+    -v $PWD/simple.rules:/etc/fapolicyd/fapolicyd.rules
+    ctcoss/fapolicyd
 
 after_script:
   - sudo podman kill fapolicyd
 
 script:
   - sudo podman ps
-  - touch /tmp/foo.sh && chmod +x /tmp/foo.sh
   - sudo podman logs fapolicyd
   - sudo podman exec -it fapolicyd journalctl -u fapolicyd
-  - sudo podman exec -it fapolicyd bash -c '/deny/foo.sh' || true
+
+  - sudo podman exec -it fapolicyd /deny/hello.sh || true
+  - sudo podman exec -it fapolicyd mv /deny/hello.sh /allow
+  - sudo podman exec -it fapolicyd /allow/hello.sh
+
   - sudo podman exec -it fapolicyd journalctl -u fapolicyd
