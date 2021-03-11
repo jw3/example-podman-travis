@@ -14,7 +14,9 @@ before_install:
   - echo -e "[registries.search]\nregistries = ['docker.io', 'quay.io']" | sudo tee /etc/containers/registries.conf
 
 script:
+  - sudo podman pull --quiet ctcoss/fapolicyd
   - sudo podman run -d -it --privileged --systemd true -v /tmp:/deny --name fapolicyd ctcoss/fapolicyd
+  - sudo podman ps
   - touch /tmp/foo.sh && chmod +x /tmp/foo.sh
   - sleep 1
   - podman exec -it fapolicyd bash -c '/deny/foo.sh'
