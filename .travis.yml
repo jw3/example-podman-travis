@@ -19,7 +19,8 @@ script:
   - sudo podman ps
   - touch /tmp/foo.sh && chmod +x /tmp/foo.sh
   - sleep 1
-  - podman exec -it fapolicyd bash -c '/deny/foo.sh'
   - sudo podman logs fapolicyd
+  - sudo podman exec -it fapolicyd journalctl -u fapolicyd
+  - sudo podman exec -it fapolicyd bash -c '/deny/foo.sh'
   - sudo podman exec -it fapolicyd journalctl -u fapolicyd
   - sudo podman kill fapolicyd
